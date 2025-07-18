@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Email index{% endblock %}
+
+{% block body %}
+    <h1>Email index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Subject</th>
+                <th>Sender</th>
+                <th>Body</th>
+                <th>Summary</th>
+                <th>ReceivedAt</th>
+                <th>GmailId</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for email in emails %}
+            <tr>
+                <td>{{ email.id }}</td>
+                <td>{{ email.subject }}</td>
+                <td>{{ email.sender }}</td>
+                <td>{{ email.body }}</td>
+                <td>{{ email.summary }}</td>
+                <td>{{ email.receivedAt ? email.receivedAt|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ email.gmailId }}</td>
+                <td>
+                    <a href="{{ path('app_email_show', {'id': email.id}) }}">show</a>
+                    <a href="{{ path('app_email_edit', {'id': email.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="8">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_email_new') }}">Create new</a>
+{% endblock %}

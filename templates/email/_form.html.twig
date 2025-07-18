@@ -1,0 +1,11 @@
+{{ form_start(form) }}
+    {{ form_row(form.subject) }}
+    {{ form_row(form.sender) }}
+    {{ form_row(form.body) }}
+    {{ form_row(form.summary) }}
+    {{ form_row(form.receivedAt) }}
+    {{ form_row(form.gmailId) }}
+    {{ form_row(form.category) }}
+    {# Omit form_row(form.owner) if you set it in the controller #}
+    <button class="btn">{{ button_label|default('Save') }}</button>
+{{ form_end(form) }}

@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -33,6 +35,24 @@ class User implements UserInterface
 
     #[ORM\Column(nullable: true)]
     private ?string $password = null;
+
+    /**
+     * @var Collection<int, Category>
+     */
+    #[ORM\OneToMany(targetEntity: Category::class, mappedBy: 'owner', orphanRemoval: true)]
+    private Collection $categories;
+
+    /**
+     * @var Collection<int, Email>
+     */
+    #[ORM\OneToMany(targetEntity: Email::class, mappedBy: 'owner', orphanRemoval: true)]
+    private Collection $emails;
+
+    public function __construct()
+    {
+        $this->categories = new ArrayCollection();
+        $this->emails = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -120,5 +140,65 @@ class User implements UserInterface
     public function eraseCredentials(): void
     {
         // @deprecated, to be removed when upgrading to Symfony 8
+    }
+
+    /**
+     * @return Collection<int, Category>
+     */
+    public function getCategories(): Collection
+    {
+        return $this->categories;
+    }
+
+    public function addCategory(Category $category): static
+    {
+        if (!$this->categories->contains($category)) {
+            $this->categories->add($category);
+            $category->setOwner($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCategory(Category $category): static
+    {
+        if ($this->categories->removeElement($category)) {
+            // set the owning side to null (unless already changed)
+            if ($category->getOwner() === $this) {
+                $category->setOwner(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Email>
+     */
+    public function getEmails(): Collection
+    {
+        return $this->emails;
+    }
+
+    public function addEmail(Email $email): static
+    {
+        if (!$this->emails->contains($email)) {
+            $this->emails->add($email);
+            $email->setOwner($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEmail(Email $email): static
+    {
+        if ($this->emails->removeElement($email)) {
+            // set the owning side to null (unless already changed)
+            if ($email->getOwner() === $this) {
+                $email->setOwner(null);
+            }
+        }
+
+        return $this;
     }
 }

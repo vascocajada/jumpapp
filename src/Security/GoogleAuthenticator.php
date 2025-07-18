@@ -18,6 +18,8 @@ use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
 use Symfony\Component\Security\Http\Authenticator\AbstractAuthenticator;
 use Symfony\Component\Security\Core\User\UserInterface;
+use KnpU\OAuth2ClientBundle\Exception\InvalidStateException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class GoogleAuthenticator extends OAuth2Authenticator
 {
@@ -39,27 +41,31 @@ class GoogleAuthenticator extends OAuth2Authenticator
 
     public function authenticate(Request $request): Passport
     {
-        $client = $this->clientRegistry->getClient('google');
-        $accessToken = $client->getAccessToken();
-        $googleUser = $client->fetchUserFromToken($accessToken);
+        try {
+            $client = $this->clientRegistry->getClient('google');
+            $accessToken = $client->getAccessToken();
+            $googleUser = $client->fetchUserFromToken($accessToken);
 
-        $email = $googleUser->getEmail();
-        $name = $googleUser->getName();
+            $email = $googleUser->getEmail();
+            $name = $googleUser->getName();
 
-        return new SelfValidatingPassport(
-            new UserBadge($email, function($userIdentifier) use ($email, $name) {
-                $user = $this->em->getRepository(User::class)->findOneBy(['email' => $email]);
-                if (!$user) {
-                    $user = new User();
-                    $user->setEmail($email);
-                    $user->setRoles(['ROLE_USER']);
-                    $user->setName($name);
-                    $this->em->persist($user);
-                    $this->em->flush();
-                }
-                return $user;
-            })
-        );
+            return new SelfValidatingPassport(
+                new UserBadge($email, function($userIdentifier) use ($email, $name) {
+                    $user = $this->em->getRepository(User::class)->findOneBy(['email' => $email]);
+                    if (!$user) {
+                        $user = new User();
+                        $user->setEmail($email);
+                        $user->setRoles(['ROLE_USER']);
+                        $user->setName($name);
+                        $this->em->persist($user);
+                        $this->em->flush();
+                    }
+                    return $user;
+                })
+            );
+        } catch (InvalidStateException $e) {
+            throw new NotFoundHttpException('Invalid OAuth state', $e);
+        }
     }
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?RedirectResponse

@@ -14,14 +14,17 @@ class OAuthController extends AbstractController
     public function connectGoogle(ClientRegistry $clientRegistry)
     {
         // Redirect to Google
-        return $clientRegistry
-            ->getClient('google')
-            ->redirect(['email', 'profile'], []);
+        return $clientRegistry->getClient('google')->redirect([
+            'email',
+            'profile',
+            'https://www.googleapis.com/auth/gmail.readonly',
+            'https://www.googleapis.com/auth/gmail.modify',
+        ], []);
     }
 
     #[Route('/connect/google/check', name: 'connect_google_check')]
     public function connectGoogleCheck()
     {
-        // This should never be reached, as the authenticator handles this route.
+        throw $this->createNotFoundException('This page should be handled by the authenticator.');
     }
 } 
