@@ -35,7 +35,8 @@ final class CategoryController extends AbstractController
             $entityManager->persist($category);
             $entityManager->flush();
 
-            return $this->redirectToRoute('app_category_index', [], Response::HTTP_SEE_OTHER);
+            $this->addFlash('success', 'Category "' . $category->getName() . '" created successfully!');
+            return $this->redirectToRoute('app_home', [], Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('category/new.html.twig', [
@@ -45,13 +46,21 @@ final class CategoryController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_category_show', methods: ['GET'])]
-    public function show(Category $category): Response
+    public function show(Category $category, EntityManagerInterface $em): Response
     {
         if ($category->getOwner() !== $this->getUser()) {
             throw $this->createAccessDeniedException();
         }
+
+        // Get emails for this category
+        $emails = $em->getRepository(\App\Entity\Email::class)->findBy(
+            ['category' => $category, 'owner' => $this->getUser()],
+            ['receivedAt' => 'DESC']
+        );
+
         return $this->render('category/show.html.twig', [
             'category' => $category,
+            'emails' => $emails,
         ]);
     }
 
@@ -67,7 +76,8 @@ final class CategoryController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
 
-            return $this->redirectToRoute('app_category_index', [], Response::HTTP_SEE_OTHER);
+            $this->addFlash('success', 'Category "' . $category->getName() . '" updated successfully!');
+            return $this->redirectToRoute('app_home', [], Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('category/edit.html.twig', [
@@ -83,10 +93,12 @@ final class CategoryController extends AbstractController
             throw $this->createAccessDeniedException();
         }
         if ($this->isCsrfTokenValid('delete'.$category->getId(), $request->getPayload()->getString('_token'))) {
+            $categoryName = $category->getName();
             $entityManager->remove($category);
             $entityManager->flush();
+            $this->addFlash('success', 'Category "' . $categoryName . '" deleted successfully!');
         }
 
-        return $this->redirectToRoute('app_category_index', [], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute('app_home', [], Response::HTTP_SEE_OTHER);
     }
 }

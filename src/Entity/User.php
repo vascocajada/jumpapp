@@ -48,10 +48,17 @@ class User implements UserInterface
     #[ORM\OneToMany(targetEntity: Email::class, mappedBy: 'owner', orphanRemoval: true)]
     private Collection $emails;
 
+    /**
+     * @var Collection<int, GmailAccount>
+     */
+    #[ORM\OneToMany(targetEntity: GmailAccount::class, mappedBy: 'owner', orphanRemoval: true)]
+    private Collection $gmailAccounts;
+
     public function __construct()
     {
         $this->categories = new ArrayCollection();
         $this->emails = new ArrayCollection();
+        $this->gmailAccounts = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -196,6 +203,36 @@ class User implements UserInterface
             // set the owning side to null (unless already changed)
             if ($email->getOwner() === $this) {
                 $email->setOwner(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, GmailAccount>
+     */
+    public function getGmailAccounts(): Collection
+    {
+        return $this->gmailAccounts;
+    }
+
+    public function addGmailAccount(GmailAccount $gmailAccount): static
+    {
+        if (!$this->gmailAccounts->contains($gmailAccount)) {
+            $this->gmailAccounts->add($gmailAccount);
+            $gmailAccount->setOwner($this);
+        }
+
+        return $this;
+    }
+
+    public function removeGmailAccount(GmailAccount $gmailAccount): static
+    {
+        if ($this->gmailAccounts->removeElement($gmailAccount)) {
+            // set the owning side to null (unless already changed)
+            if ($gmailAccount->getOwner() === $this) {
+                $gmailAccount->setOwner(null);
             }
         }
 

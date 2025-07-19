@@ -32,13 +32,17 @@ class Email
     #[ORM\Column(length: 255)]
     private ?string $gmailId = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(inversedBy: 'emails')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $owner = null;
 
     #[ORM\ManyToOne(inversedBy: 'emails')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Category $category = null;
+
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?GmailAccount $gmailAccount = null;
 
     public function getId(): ?int
     {
@@ -137,6 +141,18 @@ class Email
     public function setCategory(?Category $category): static
     {
         $this->category = $category;
+
+        return $this;
+    }
+
+    public function getGmailAccount(): ?GmailAccount
+    {
+        return $this->gmailAccount;
+    }
+
+    public function setGmailAccount(?GmailAccount $gmailAccount): static
+    {
+        $this->gmailAccount = $gmailAccount;
 
         return $this;
     }

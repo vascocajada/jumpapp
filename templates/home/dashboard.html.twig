@@ -1,0 +1,99 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard - Email Sorter{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">Dashboard</h1>
+
+    <div class="grid gap-8 lg:grid-cols-2">
+        <!-- Gmail Accounts Section -->
+        <div class="bg-white shadow rounded-lg p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-gray-900">Gmail Accounts</h2>
+                <a href="{{ path('connect_google_add_account') }}" 
+                   class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm">
+                    Add Account
+                </a>
+            </div>
+
+            {% if gmail_accounts is empty %}
+                <div class="text-center py-8">
+                    <div class="text-gray-500 mb-4">
+                        <svg class="mx-auto h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <p class="text-gray-500 text-sm">No Gmail accounts connected</p>
+                </div>
+            {% else %}
+                <div class="space-y-3">
+                    {% for account in gmail_accounts %}
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                                    <span class="text-blue-600 font-semibold text-sm">{{ account.email|first|upper }}</span>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-900">{{ account.email }}</p>
+                                    {% if account.name %}
+                                        <p class="text-xs text-gray-500">{{ account.name }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <form method="post" action="{{ path('app_gmail_account_delete', {'id': account.id}) }}" 
+                                  onsubmit="return confirm('Remove this Gmail account?')" 
+                                  class="inline">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ account.id) }}">
+                                <button type="submit" 
+                                        class="text-red-600 hover:text-red-800 text-sm">
+                                    Remove
+                                </button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Categories Section -->
+        <div class="bg-white shadow rounded-lg p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-gray-900">Categories</h2>
+                <a href="{{ path('app_category_new') }}" 
+                   class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded text-sm">
+                    Add Category
+                </a>
+            </div>
+
+            {% if categories is empty %}
+                <div class="text-center py-8">
+                    <div class="text-gray-500 mb-4">
+                        <svg class="mx-auto h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a4 4 0 014-4h3m4 0V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2h7a2 2 0 002-2z" />
+                        </svg>
+                    </div>
+                    <p class="text-gray-500 text-sm">No categories defined</p>
+                </div>
+            {% else %}
+                <div class="space-y-3">
+                    {% for category in categories %}
+                        <a href="{{ path('app_category_show', {'id': category.id}) }}" 
+                           class="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="font-medium text-gray-900">{{ category.name }}</h3>
+                                    <p class="text-sm text-gray-600">{{ category.description }}</p>
+                                </div>
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

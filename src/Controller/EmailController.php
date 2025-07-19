@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\Email;
-use App\Form\EmailType;
 use App\Repository\EmailRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,27 +21,9 @@ final class EmailController extends AbstractController
         ]);
     }
 
-    #[Route('/new', name: 'app_email_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        $email = new Email();
-        $form = $this->createForm(EmailType::class, $email);
-        $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->persist($email);
-            $entityManager->flush();
 
-            return $this->redirectToRoute('app_email_index', [], Response::HTTP_SEE_OTHER);
-        }
-
-        return $this->render('email/new.html.twig', [
-            'email' => $email,
-            'form' => $form,
-        ]);
-    }
-
-    #[Route('/{id}', name: 'app_email_show', methods: ['GET'])]
+    #[Route('/{id}', name: 'app_email_show', methods: ['GET'], requirements: ['id' => '\\d+'])]
     public function show(Email $email): Response
     {
         return $this->render('email/show.html.twig', [
@@ -50,25 +31,9 @@ final class EmailController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'app_email_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Email $email, EntityManagerInterface $entityManager): Response
-    {
-        $form = $this->createForm(EmailType::class, $email);
-        $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
 
-            return $this->redirectToRoute('app_email_index', [], Response::HTTP_SEE_OTHER);
-        }
-
-        return $this->render('email/edit.html.twig', [
-            'email' => $email,
-            'form' => $form,
-        ]);
-    }
-
-    #[Route('/{id}', name: 'app_email_delete', methods: ['POST'])]
+    #[Route('/{id}', name: 'app_email_delete', methods: ['POST'], requirements: ['id' => '\\d+'])]
     public function delete(Request $request, Email $email, EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete'.$email->getId(), $request->getPayload()->getString('_token'))) {
