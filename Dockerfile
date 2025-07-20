@@ -15,7 +15,8 @@ WORKDIR /var/www/html
 # Copy app files
 COPY . .
 
-# Disable Composer auto-scripts and allow root
+# Set environment for Composer and Symfony
+ENV APP_ENV=prod
 ENV COMPOSER_ALLOW_SUPERUSER=1
 ENV SYMFONY_SKIP_AUTO_SCRIPTS=1
 
