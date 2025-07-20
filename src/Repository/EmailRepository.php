@@ -16,6 +16,40 @@ class EmailRepository extends ServiceEntityRepository
         parent::__construct($registry, Email::class);
     }
 
+    /**
+     * Find emails for a category with pagination
+     */
+    public function findByCategoryWithPagination($category, $user, int $page = 1, int $limit = 20): array
+    {
+        $offset = ($page - 1) * $limit;
+        
+        $qb = $this->createQueryBuilder('e')
+            ->andWhere('e.category = :category')
+            ->andWhere('e.owner = :user')
+            ->setParameter('category', $category)
+            ->setParameter('user', $user)
+            ->orderBy('e.receivedAt', 'DESC')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit);
+            
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * Count total emails for a category
+     */
+    public function countByCategory($category, $user): int
+    {
+        return $this->createQueryBuilder('e')
+            ->select('COUNT(e.id)')
+            ->andWhere('e.category = :category')
+            ->andWhere('e.owner = :user')
+            ->setParameter('category', $category)
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
 //    /**
 //     * @return Email[] Returns an array of Email objects
 //     */

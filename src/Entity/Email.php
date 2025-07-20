@@ -32,6 +32,12 @@ class Email
     #[ORM\Column(length: 255)]
     private ?string $gmailId = null;
 
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $listUnsubscribe = null;
+
+    #[ORM\Column(type: Types::STRING, length: 32, nullable: true)]
+    private ?string $unsubscribeStatus = null;
+
     #[ORM\ManyToOne(inversedBy: 'emails')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $owner = null;
@@ -41,7 +47,7 @@ class Email
     private ?Category $category = null;
 
     #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
     private ?GmailAccount $gmailAccount = null;
 
     public function getId(): ?int
@@ -118,6 +124,28 @@ class Email
     {
         $this->gmailId = $gmailId;
 
+        return $this;
+    }
+
+    public function getListUnsubscribe(): ?string
+    {
+        return $this->listUnsubscribe;
+    }
+
+    public function setListUnsubscribe(?string $listUnsubscribe): static
+    {
+        $this->listUnsubscribe = $listUnsubscribe;
+        return $this;
+    }
+
+    public function getUnsubscribeStatus(): ?string
+    {
+        return $this->unsubscribeStatus;
+    }
+
+    public function setUnsubscribeStatus(?string $unsubscribeStatus): static
+    {
+        $this->unsubscribeStatus = $unsubscribeStatus;
         return $this;
     }
 

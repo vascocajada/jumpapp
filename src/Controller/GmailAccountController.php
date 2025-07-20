@@ -14,32 +14,23 @@ use Symfony\Component\Routing\Attribute\Route;
 final class GmailAccountController extends AbstractController
 {
     #[Route('/', name: 'app_gmail_account_index', methods: ['GET'])]
-    public function index(GmailAccountRepository $gmailAccountRepository): Response
+    public function index(): Response
     {
-        $accounts = $gmailAccountRepository->findBy(['owner' => $this->getUser()]);
-        
-        return $this->render('gmail_account/index.html.twig', [
-            'gmail_accounts' => $accounts,
-        ]);
+        return $this->redirectToRoute('app_home');
     }
 
     #[Route('/add', name: 'app_gmail_account_add', methods: ['GET'])]
-    public function add(): Response
+    public function add(GmailAccountRepository $gmailAccountRepository): Response
     {
+        // Check if user has reached the limit of 15 Gmail accounts
+        $userAccounts = $gmailAccountRepository->findBy(['owner' => $this->getUser()]);
+        if (count($userAccounts) >= 15) {
+            $this->addFlash('error', 'You have reached the maximum limit of 15 Gmail accounts.');
+            return $this->redirectToRoute('app_home');
+        }
+        
         // Redirect to a special OAuth route for adding Gmail accounts
         return $this->redirectToRoute('connect_google_add_account');
-    }
-
-    #[Route('/{id}', name: 'app_gmail_account_show', methods: ['GET'])]
-    public function show(GmailAccount $gmailAccount): Response
-    {
-        if ($gmailAccount->getOwner() !== $this->getUser()) {
-            throw $this->createAccessDeniedException();
-        }
-
-        return $this->render('gmail_account/show.html.twig', [
-            'gmail_account' => $gmailAccount,
-        ]);
     }
 
     #[Route('/{id}', name: 'app_gmail_account_delete', methods: ['POST'])]
@@ -55,6 +46,6 @@ final class GmailAccountController extends AbstractController
             $this->addFlash('success', 'Gmail account removed successfully.');
         }
 
-        return $this->redirectToRoute('app_gmail_account_index', [], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute('app_home', [], Response::HTTP_SEE_OTHER);
     }
 } 

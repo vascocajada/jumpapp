@@ -10,16 +10,26 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Controller\BaseController;
 
 #[Route('/category')]
-final class CategoryController extends AbstractController
+final class CategoryController extends BaseController
 {
     #[Route(name: 'app_category_index', methods: ['GET'])]
-    public function index(CategoryRepository $categoryRepository): Response
+    public function index(CategoryRepository $categoryRepository, Request $request): Response
     {
-        $categories = $categoryRepository->findBy(['owner' => $this->getUser()]);
-        return $this->render('category/index.html.twig', [
+        $page = max(1, $request->query->getInt('page', 1));
+        $limit = 10;
+        
+        $categories = $categoryRepository->findByUserWithPagination($this->getUser(), $page, $limit);
+        $totalCategories = $categoryRepository->countByUser($this->getUser());
+        $totalPages = ceil($totalCategories / $limit);
+        
+        return $this->renderWithConfig('category/index.html.twig', [
             'categories' => $categories,
+            'currentPage' => $page,
+            'totalPages' => $totalPages,
+            'totalCategories' => $totalCategories,
         ]);
     }
 
@@ -39,28 +49,33 @@ final class CategoryController extends AbstractController
             return $this->redirectToRoute('app_home', [], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->render('category/new.html.twig', [
+        return $this->renderWithConfig('category/new.html.twig', [
             'category' => $category,
             'form' => $form,
         ]);
     }
 
     #[Route('/{id}', name: 'app_category_show', methods: ['GET'])]
-    public function show(Category $category, EntityManagerInterface $em): Response
+    public function show(Category $category, Request $request, \App\Repository\EmailRepository $emailRepository): Response
     {
         if ($category->getOwner() !== $this->getUser()) {
             throw $this->createAccessDeniedException();
         }
 
-        // Get emails for this category
-        $emails = $em->getRepository(\App\Entity\Email::class)->findBy(
-            ['category' => $category, 'owner' => $this->getUser()],
-            ['receivedAt' => 'DESC']
-        );
+        $page = max(1, $request->query->getInt('page', 1));
+        $limit = 24;
+        
+        // Get emails for this category with pagination
+        $emails = $emailRepository->findByCategoryWithPagination($category, $this->getUser(), $page, $limit);
+        $totalEmails = $emailRepository->countByCategory($category, $this->getUser());
+        $totalPages = ceil($totalEmails / $limit);
 
-        return $this->render('category/show.html.twig', [
+        return $this->renderWithConfig('category/show.html.twig', [
             'category' => $category,
             'emails' => $emails,
+            'currentPage' => $page,
+            'totalPages' => $totalPages,
+            'totalEmails' => $totalEmails,
         ]);
     }
 
@@ -80,7 +95,7 @@ final class CategoryController extends AbstractController
             return $this->redirectToRoute('app_home', [], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->render('category/edit.html.twig', [
+        return $this->renderWithConfig('category/edit.html.twig', [
             'category' => $category,
             'form' => $form,
         ]);

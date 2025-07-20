@@ -8,6 +8,9 @@ use Doctrine\Common\Collections\Collection;
 use App\Entity\Email;
 
 #[ORM\Entity(repositoryClass: GmailAccountRepository::class)]
+#[ORM\Table(name: 'gmail_account', uniqueConstraints: [
+    new ORM\UniqueConstraint(name: 'uniq_gmail_owner', columns: ['email', 'owner_id'])
+])]
 class GmailAccount
 {
     #[ORM\Id]

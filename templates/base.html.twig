@@ -10,6 +10,31 @@
 
         {% block javascripts %}
             {{ encore_entry_script_tags('app') }}
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    var notificationsBtn = document.getElementById('notifications-btn');
+                    var notificationsBadge = document.getElementById('notifications-badge');
+                    var notificationsDropdown = document.getElementById('notifications-dropdown');
+                    if (notificationsBtn && notificationsBadge && notificationsDropdown) {
+                        notificationsBtn.addEventListener('mouseenter', function() {
+                            if (notificationsBadge.style.display !== 'none') {
+                                fetch('{{ path('app_notifications_mark_read') }}', {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'Content-Type': 'application/json',
+                                    },
+                                    credentials: 'same-origin',
+                                }).then(function(response) {
+                                    if (response.ok) {
+                                        notificationsBadge.style.display = 'none';
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            </script>
         {% endblock %}
     </head>
     <body>
@@ -18,7 +43,6 @@
                 <div class="container mx-auto flex justify-between items-center">
                     <div class="flex space-x-6">
                         <a href="{{ path('app_home') }}" class="hover:text-gray-300">Dashboard</a>
-                        <a href="{{ path('app_email_index') }}" class="hover:text-gray-300">All Emails</a>
                     </div>
                     <div class="flex items-center space-x-4">
                         <!-- Connected Gmail Accounts Dropdown -->
@@ -58,6 +82,56 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- Notifications Dropdown -->
+                        <div class="relative group" id="notifications-dropdown">
+                            <button id="notifications-btn" class="flex items-center space-x-1 hover:text-gray-300">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                </svg>
+                                <span>Notifications</span>
+                                {% set unreadCount = app.user ? (app.user.notifications|filter(n => not n.isRead())|length) : 0 %}
+                                <span id="notifications-badge" {% if unreadCount == 0 %}style="display:none"{% endif %} class="ml-1 bg-red-600 text-white text-xs rounded-full px-2 py-0.5">{{ unreadCount }}</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            <div class="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                                <div class="py-2 max-h-96 overflow-y-auto">
+                                    {% set notifications = app.user ? app.user.notifications|filter(n => not n.isRead())|slice(0, 10) : [] %}
+                                    {% if notifications is empty %}
+                                        <div class="px-4 py-2 text-sm text-gray-500">No new notifications</div>
+                                    {% else %}
+                                        {% for notification in notifications %}
+                                            {% set typeColor = {
+                                                'success': 'bg-green-100 text-green-800',
+                                                'error': 'bg-red-100 text-red-800',
+                                                'info': 'bg-blue-100 text-blue-800',
+                                                'warning': 'bg-yellow-100 text-yellow-800'
+                                            }[notification.type]|default('bg-gray-100 text-gray-600') %}
+                                            <div class="px-4 py-2 text-sm {{ typeColor }} rounded mb-1 flex items-center">
+                                                <span class="flex-1">{{ notification.message }}</span>
+                                                {% if notification.relatedEmail %}
+                                                    <a href="{{ path('app_email_show', {'id': notification.relatedEmail.id}) }}" class="ml-2 text-blue-600 hover:underline">View</a>
+                                                {% endif %}
+                                            </div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% if app.user and config is defined %}
+                            <form method="post" action="{{ path('app_toggle_list_unsubscribe') }}" class="ml-4">
+                                <input type="hidden" name="_token" value="{{ csrf_token('toggle_list_unsubscribe') }}">
+                                <label class="flex items-center cursor-pointer select-none">
+                                    <span class="mr-2 text-xs text-gray-200">List-Unsubscribe</span>
+                                    <span class="relative">
+                                        <input type="checkbox" name="use_gmail_list_unsubscribe" onchange="this.form.submit()" {% if config.useGmailListUnsubscribe %}checked{% endif %} class="sr-only peer">
+                                        <div class="w-10 h-5 bg-gray-400 rounded-full peer-checked:bg-blue-600 transition-colors"></div>
+                                        <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow transform peer-checked:translate-x-5 transition-transform"></div>
+                                    </span>
+                                </label>
+                            </form>
+                        {% endif %}
                         <span class="text-gray-300">{{ app.user.email }}</span>
                         <a href="{{ path('_logout_main') }}" class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm">Logout</a>
                     </div>

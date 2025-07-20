@@ -76,7 +76,7 @@ class FetchGmailEmailsCommand extends Command
             $this->logger->info('Processing Gmail account', ['accountId' => $account->getId(), 'email' => $account->getEmail()]);
             
             try {
-                [$processed, $archived, $errors] = $this->emailImportService->importForAccount($account);
+                [$processed, $archived, $errors] = $this->emailImportService->importForAccount($account, 10);
                 $totalProcessed += $processed;
                 $totalArchived += $archived;
                 $totalErrors += count($errors);

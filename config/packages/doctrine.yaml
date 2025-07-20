@@ -8,6 +8,15 @@ doctrine:
 
         profiling_collect_backtrace: '%kernel.debug%'
         use_savepoints: true
+        
+        # Connection options for better stability
+        options:
+            # Increase connection timeout for long-running jobs
+            1002: "SET SESSION wait_timeout=28800"
+            # Auto-reconnect on connection loss
+            1001: "SET SESSION sql_mode = ''"
+            # Enable connection pooling
+            1003: "SET SESSION interactive_timeout=28800"
     orm:
         auto_generate_proxy_classes: true
         enable_lazy_ghost_objects: true

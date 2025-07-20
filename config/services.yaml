@@ -4,6 +4,7 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    chromedriver_path: '%env(resolve:PANTHER_CHROME_DRIVER_BINARY)%'
 
 services:
     # default configuration for services in *this* file
@@ -28,7 +29,18 @@ services:
     App\Service\OpenAIService:
         arguments:
             $apiKey: '%env(OPENAI_API_KEY)%'
+            $contentPreprocessor: '@App\Service\AIContentPreprocessor'
 
     App\Security\GoogleEntryPoint:
         arguments:
             $router: '@router'
+
+    App\Service\UnsubscribeAutomationService:
+        arguments:
+
+    App\Service\PantherAutomationService:
+        arguments:
+            $chromedriverPath: '%env(resolve:PANTHER_CHROME_DRIVER_BINARY)%'
+            $logger: '@logger'
+
+

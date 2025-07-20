@@ -44,7 +44,7 @@ class GmailService
         $service = new Gmail($client);
         $messages = $service->users_messages->listUsersMessages('me', [
             'maxResults' => $maxResults,
-            'q' => 'in:inbox'
+            'q' => 'label:jumpapp in:inbox'
         ]);
         $result = [];
         foreach ($messages->getMessages() as $message) {

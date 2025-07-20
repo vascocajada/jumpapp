@@ -63,14 +63,14 @@ class GoogleAuthenticator extends OAuth2Authenticator
                             throw new \Exception('No authenticated user found');
                         }
 
-                        // Check if this Gmail account is already connected to the current user
-                        $existingGmailAccount = $this->em->getRepository(\App\Entity\GmailAccount::class)
-                            ->findOneBy(['email' => $email, 'owner' => $currentUser]);
-                        
+                        // Check if this Gmail account is already connected to the current user (including soft-deleted)
+                        $gmailAccountRepo = $this->em->getRepository(\App\Entity\GmailAccount::class);
+                        $existingGmailAccount = $gmailAccountRepo->findOneBy(['email' => $email, 'owner' => $currentUser]);
                         if ($existingGmailAccount) {
                             // Update existing Gmail account token
                             $existingGmailAccount->setAccessToken(json_encode($accessToken));
                             $existingGmailAccount->setName($name);
+                            // If you use soft deletes, restore here (e.g., $existingGmailAccount->setDeletedAt(null))
                         } else {
                             // Create new Gmail account connection
                             $gmailAccount = new \App\Entity\GmailAccount();

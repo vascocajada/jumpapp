@@ -7,10 +7,12 @@ use App\Entity\GmailAccount;
 use App\Exception\CategoryNotFoundException;
 use Doctrine\ORM\EntityManagerInterface;
 
+
 class EmailImportService
 {
     private GmailService $gmailService;
     private OpenAIService $openAIService;
+
     private EntityManagerInterface $em;
 
     public function __construct(GmailService $gmailService, OpenAIService $openAIService, EntityManagerInterface $em)
@@ -74,6 +76,9 @@ class EmailImportService
             $subject = '';
             $from = '';
             $body = '';
+            $htmlBody = '';
+            $plainBody = '';
+            $listUnsubscribe = null;
             foreach ($headers as $header) {
                 if ($header->getName() === 'Subject') {
                     $subject = $header->getValue();
@@ -81,19 +86,25 @@ class EmailImportService
                 if ($header->getName() === 'From') {
                     $from = $header->getValue();
                 }
+                if (strtolower($header->getName()) === 'list-unsubscribe') {
+                    $listUnsubscribe = $header->getValue();
+                }
             }
             $parts = $payload->getParts();
             if ($parts) {
                 foreach ($parts as $part) {
+                    if ($part->getMimeType() === 'text/html') {
+                        $htmlBody = base64_decode(strtr($part->getBody()->getData(), '-_', '+/'));
+                    }
                     if ($part->getMimeType() === 'text/plain') {
-                        $body = base64_decode(strtr($part->getBody()->getData(), '-_', '+/'));
-                        break;
+                        $plainBody = base64_decode(strtr($part->getBody()->getData(), '-_', '+/'));
                     }
                 }
             }
-            if (!$body && $payload->getBody()) {
-                $body = base64_decode(strtr($payload->getBody()->getData(), '-_', '+/'));
+            if (!$htmlBody && $payload->getBody()) {
+                $plainBody = base64_decode(strtr($payload->getBody()->getData(), '-_', '+/'));
             }
+            $body = $htmlBody ?: $plainBody;
             try {
                 $chosenName = $categoryPairs ? $this->openAIService->categorizeEmail($body ?: $subject, $categoryPairs, $categoryNames) : null;
             } catch (CategoryNotFoundException $e) {
@@ -116,6 +127,7 @@ class EmailImportService
             $email->setReceivedAt(new \DateTimeImmutable());
             $email->setBody($body);
             $email->setCategory($categoryEntity);
+            $email->setListUnsubscribe($listUnsubscribe);
             $this->em->persist($email);
             $processed++;
             try {

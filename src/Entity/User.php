@@ -7,6 +7,8 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
+use App\Entity\Notification;
+use App\Entity\Config;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -54,11 +56,21 @@ class User implements UserInterface
     #[ORM\OneToMany(targetEntity: GmailAccount::class, mappedBy: 'owner', orphanRemoval: true)]
     private Collection $gmailAccounts;
 
+    /**
+     * @var Collection<int, Notification>
+     */
+    #[ORM\OneToMany(targetEntity: Notification::class, mappedBy: 'user', orphanRemoval: true)]
+    private Collection $notifications;
+
+    #[ORM\OneToOne(mappedBy: 'user', targetEntity: Config::class, cascade: ['persist', 'remove'])]
+    private ?Config $config = null;
+
     public function __construct()
     {
         $this->categories = new ArrayCollection();
         $this->emails = new ArrayCollection();
         $this->gmailAccounts = new ArrayCollection();
+        $this->notifications = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -236,6 +248,29 @@ class User implements UserInterface
             }
         }
 
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Notification>
+     */
+    public function getNotifications(): Collection
+    {
+        return $this->notifications;
+    }
+
+    public function getConfig(): ?Config
+    {
+        return $this->config;
+    }
+
+    public function setConfig(?Config $config): static
+    {
+        $this->config = $config;
+        // set the owning side of the relation if necessary
+        if ($config && $config->getUser() !== $this) {
+            $config->setUser($this);
+        }
         return $this;
     }
 }

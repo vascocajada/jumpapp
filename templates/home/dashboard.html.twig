@@ -10,14 +10,18 @@
         <!-- Gmail Accounts Section -->
         <div class="bg-white shadow rounded-lg p-6">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-bold text-gray-900">Gmail Accounts</h2>
+                <div>
+                    <h2 class="text-xl font-bold text-gray-900">Gmail Accounts</h2>
+                    <p class="text-sm text-gray-500">{{ gmailAccounts|length }} of 15 accounts</p>
+                </div>
                 <a href="{{ path('connect_google_add_account') }}" 
-                   class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm">
-                    Add Account
+                   class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm {% if gmailAccounts|length >= 15 %}opacity-50 cursor-not-allowed{% endif %}"
+                   {% if gmailAccounts|length >= 15 %}onclick="return false;"{% endif %}>
+                    {% if gmailAccounts|length >= 15 %}Limit Reached{% else %}Add Account{% endif %}
                 </a>
             </div>
 
-            {% if gmail_accounts is empty %}
+            {% if gmailAccounts is empty %}
                 <div class="text-center py-8">
                     <div class="text-gray-500 mb-4">
                         <svg class="mx-auto h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -28,7 +32,7 @@
                 </div>
             {% else %}
                 <div class="space-y-3">
-                    {% for account in gmail_accounts %}
+                    {% for account in gmailAccounts %}
                         <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                             <div class="flex items-center">
                                 <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
@@ -59,7 +63,10 @@
         <!-- Categories Section -->
         <div class="bg-white shadow rounded-lg p-6">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-bold text-gray-900">Categories</h2>
+                <div>
+                    <h2 class="text-xl font-bold text-gray-900">Categories</h2>
+                    <p class="text-sm text-gray-500">{{ totalCategories }} categories total</p>
+                </div>
                 <a href="{{ path('app_category_new') }}" 
                    class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded text-sm">
                     Add Category
@@ -82,7 +89,9 @@
                            class="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <h3 class="font-medium text-gray-900">{{ category.name }}</h3>
+                                    <h3 class="font-medium text-gray-900">{{ category.name }}
+                                        <span class="ml-2 inline-block bg-blue-200 text-blue-800 text-xs font-semibold px-2 py-0.5 rounded-full align-middle">{{ category.emails|length }}</span>
+                                    </h3>
                                     <p class="text-sm text-gray-600">{{ category.description }}</p>
                                 </div>
                                 <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -92,6 +101,47 @@
                         </a>
                     {% endfor %}
                 </div>
+                
+                {% if totalPages > 1 %}
+                    <div class="mt-6 flex justify-center">
+                        <nav class="flex items-center space-x-2">
+                            {% if currentPage > 1 %}
+                                <a href="{{ path('app_home', {'page': currentPage - 1}) }}" 
+                                   class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                                    Previous
+                                </a>
+                            {% endif %}
+                            
+                            {% for page in 1..totalPages %}
+                                {% if page == currentPage %}
+                                    <span class="px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-md">
+                                        {{ page }}
+                                    </span>
+                                {% elseif page <= 3 or page > totalPages - 3 or (page >= currentPage - 1 and page <= currentPage + 1) %}
+                                    <a href="{{ path('app_home', {'page': page}) }}" 
+                                       class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                                        {{ page }}
+                                    </a>
+                                {% elseif page == 4 and currentPage > 6 %}
+                                    <span class="px-3 py-2 text-sm font-medium text-gray-500">...</span>
+                                {% elseif page == totalPages - 3 and currentPage < totalPages - 5 %}
+                                    <span class="px-3 py-2 text-sm font-medium text-gray-500">...</span>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if currentPage < totalPages %}
+                                <a href="{{ path('app_home', {'page': currentPage + 1}) }}" 
+                                   class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                                    Next
+                                </a>
+                            {% endif %}
+                        </nav>
+                    </div>
+                    
+                    <div class="mt-4 text-center text-sm text-gray-500">
+                        Showing {{ ((currentPage - 1) * 20) + 1 }} to {{ min(currentPage * 20, totalCategories) }} of {{ totalCategories }} categories
+                    </div>
+                {% endif %}
             {% endif %}
         </div>
     </div>
