@@ -123,4 +123,35 @@ final class EmailController extends BaseController
         $this->addFlash('success', count($emails) . ' email(s) deleted successfully.');
         return $this->redirectToRoute('app_category_show', ['id' => $categoryId]);
     }
+
+    #[Route('/bulk-unsubscribe', name: 'app_email_bulk_unsubscribe', methods: ['POST'])]
+    public function bulkUnsubscribe(Request $request, EmailRepository $emailRepository, MessageBusInterface $bus, \Psr\Log\LoggerInterface $logger): Response
+    {
+        $emailIds = $request->getPayload()->all('email_ids') ?: [];
+        $categoryId = $request->getPayload()->get('category_id');
+        
+        if (empty($emailIds)) {
+            $this->addFlash('error', 'No emails selected for unsubscribe.');
+            return $this->redirectToRoute('app_category_show', ['id' => $categoryId]);
+        }
+        
+        // Verify all emails belong to the current user
+        $emails = $emailRepository->findBy([
+            'id' => $emailIds,
+            'owner' => $this->getUser()
+        ]);
+        
+        if (count($emails) !== count($emailIds)) {
+            $this->addFlash('error', 'Some emails could not be found or you do not have permission to unsubscribe them.');
+            return $this->redirectToRoute('app_category_show', ['id' => $categoryId]);
+        }
+        
+        foreach ($emails as $email) {
+            $logger->info('Bulk unsubscribe: dispatching', ['emailId' => $email->getId()]);
+            $bus->dispatch(new UnsubscribeEmailMessage($email->getId()));
+        }
+        
+        $this->addFlash('info', count($emails) . ' unsubscribe request(s) queued.');
+        return $this->redirectToRoute('app_category_show', ['id' => $categoryId]);
+    }
 }

@@ -23,6 +23,9 @@
             <button id="bulkDeleteBtn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded hidden">
                 Delete Selected
             </button>
+            <button id="bulkUnsubscribeBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded hidden">
+                Unsubscribe Selected
+            </button>
             <a href="{{ path('app_category_edit', {'id': category.id}) }}" 
                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                 Edit Category
@@ -45,6 +48,11 @@
             <input type="hidden" name="_token" value="{{ csrf_token('bulk_delete') }}">
             <input type="hidden" name="category_id" value="{{ category.id }}">
             <div id="emailIdsContainer"></div>
+        </form>
+        <form id="bulkUnsubscribeForm" method="post" action="{{ path('app_email_bulk_unsubscribe') }}" class="hidden">
+            <input type="hidden" name="_token" value="{{ csrf_token('bulk_unsubscribe') }}">
+            <input type="hidden" name="category_id" value="{{ category.id }}">
+            <div id="unsubscribeEmailIdsContainer"></div>
         </form>
         
         <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -163,9 +171,12 @@
 document.addEventListener('DOMContentLoaded', function() {
     const selectAllBtn = document.getElementById('selectAllBtn');
     const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    const bulkUnsubscribeBtn = document.getElementById('bulkUnsubscribeBtn');
     const bulkDeleteForm = document.getElementById('bulkDeleteForm');
+    const bulkUnsubscribeForm = document.getElementById('bulkUnsubscribeForm');
     const emailCheckboxes = document.querySelectorAll('.email-checkbox');
     const emailIdsContainer = document.getElementById('emailIdsContainer');
+    const unsubscribeEmailIdsContainer = document.getElementById('unsubscribeEmailIdsContainer');
     
     let allSelected = false;
     
@@ -210,13 +221,37 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    // Bulk Unsubscribe functionality
+    bulkUnsubscribeBtn.addEventListener('click', function() {
+        const selectedEmails = document.querySelectorAll('.email-checkbox:checked');
+        if (selectedEmails.length === 0) {
+            alert('Please select at least one email to unsubscribe.');
+            return;
+        }
+        if (confirm(`Are you sure you want to unsubscribe from ${selectedEmails.length} email(s)?`)) {
+            // Add selected email IDs to the form
+            unsubscribeEmailIdsContainer.innerHTML = '';
+            selectedEmails.forEach(checkbox => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'email_ids[]';
+                input.value = checkbox.value;
+                unsubscribeEmailIdsContainer.appendChild(input);
+            });
+            bulkUnsubscribeForm.submit();
+        }
+    });
+    
     function updateBulkDeleteButton() {
         const selectedCount = document.querySelectorAll('.email-checkbox:checked').length;
         if (selectedCount > 0) {
             bulkDeleteBtn.classList.remove('hidden');
             bulkDeleteBtn.textContent = `Delete Selected (${selectedCount})`;
+            bulkUnsubscribeBtn.classList.remove('hidden');
+            bulkUnsubscribeBtn.textContent = `Unsubscribe Selected (${selectedCount})`;
         } else {
             bulkDeleteBtn.classList.add('hidden');
+            bulkUnsubscribeBtn.classList.add('hidden');
         }
     }
     
