@@ -52,8 +52,7 @@ class OAuthController extends AbstractController
     #[Route('/connect/google/check', name: 'connect_google_check')]
     public function connectGoogleCheck()
     {
-        // This method should not be called directly
-        // The authenticator should handle the OAuth callback
-        throw new \Exception('OAuth callback should be handled by the authenticator');
+        // TEMP: Return a plain response to debug if this controller is being called directly
+        return new \Symfony\Component\HttpFoundation\Response('Should be handled by authenticator');
     }
 } 
