@@ -67,7 +67,7 @@ class GmailWebhookController extends AbstractController
     private function isValidGoogleJwt(string $jwt, LoggerInterface $logger): bool
     {
         try {
-            $keys = json_decode(file_get_contents('https://www.googleapis.com/oauth2/v1/certs'), true); // decode as array
+            $keys = json_decode(file_get_contents('https://www.googleapis.com/oauth2/v3/certs'), true); // decode as array
             JWT::decode($jwt, JWK::parseKeySet($keys));
             return true;
         } catch (\Throwable $e) {
