@@ -50,7 +50,7 @@ final class EmailController extends BaseController
     }
 
     #[Route('/{id}/unsubscribe', name: 'app_email_unsubscribe', methods: ['POST'], requirements: ['id' => '\d+'])]
-    public function unsubscribe(Request $request, ?Email $email, MessageBusInterface $bus): Response
+    public function unsubscribe(Request $request, ?Email $email, MessageBusInterface $bus, \Psr\Log\LoggerInterface $logger): Response
     {
         if (!$email) {
             $this->addFlash('error', 'The requested email was not found.');
@@ -74,8 +74,9 @@ final class EmailController extends BaseController
             return $this->redirectToRoute('app_category_show', ['id' => $categoryId]);
         }
 
-        // Dispatch the background unsubscribe job
+        $logger->info('About to dispatch UnsubscribeEmailMessage', ['emailId' => $email->getId()]);
         $bus->dispatch(new UnsubscribeEmailMessage($email->getId()));
+        $logger->info('Dispatched UnsubscribeEmailMessage', ['emailId' => $email->getId()]);
         $this->addFlash('info', 'Unsubscribe requested. We’ll notify you when it’s done.');
         return $this->redirectToRoute('app_category_show', ['id' => $categoryId]);
     }

@@ -42,7 +42,7 @@ class UnsubscribeEmailMessageHandler
 
     public function __invoke(UnsubscribeEmailMessage $message)
     {
-        $this->logger->info('UnsubscribeEmailMessageHandler invoked', ['emailId' => $message->getEmailId()]);
+        $this->logger->info('UnsubscribeEmailMessageHandler __invoke START', ['emailId' => $message->getEmailId()]);
         // Start transaction to prevent EntityManager corruption
         $this->em->getConnection()->beginTransaction();
         
@@ -141,6 +141,7 @@ class UnsubscribeEmailMessageHandler
             $this->em->clear(); // Detach all entities
             throw $e; // Let Messenger retry
         }
+        $this->logger->info('UnsubscribeEmailMessageHandler __invoke END', ['emailId' => $message->getEmailId()]);
     }
 
 
