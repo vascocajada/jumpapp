@@ -4,7 +4,7 @@ framework:
 
     # Note that the session will be started ONLY if you read or write from it.
     session:
-        handler_id: 'snc_redis.session.handler'
+        handler_id: 'redis://%env(REDIS_URL)%'
 
     #esi: true
     #fragments: true
