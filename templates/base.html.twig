@@ -120,7 +120,7 @@
                             </div>
                         </div>
                         {% if app.user and config is defined %}
-                            <form method="post" action="{{ path('app_toggle_list_unsubscribe') }}" class="ml-4">
+                            <form method="post" action="{{ path('app_toggle_list_unsubscribe') }}" class="ml-4 relative group">
                                 <input type="hidden" name="_token" value="{{ csrf_token('toggle_list_unsubscribe') }}">
                                 <label class="flex items-center cursor-pointer select-none">
                                     <span class="mr-2 text-xs text-gray-200">List-Unsubscribe</span>
@@ -130,13 +130,20 @@
                                         <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow transform peer-checked:translate-x-5 transition-transform"></div>
                                     </span>
                                 </label>
+                                <span class="absolute left-1/2 -translate-x-1/2 mt-2 w-64 bg-gray-800 text-white text-xs rounded py-2 px-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                                    If active, will look for the Google list unsubscribe link in emails and use it.
+                                </span>
                             </form>
                         {% endif %}
                         <span class="text-gray-300">{{ app.user.email }}</span>
-                        <form method="post" action="{{ path('app_import_emails') }}" class="inline-block mx-2">
-                            <input type="hidden" name="_token" value="{{ csrf_token('import_emails') }}">
-                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm">Import Emails</button>
-                        </form>
+                        <a href="{{ path('app_import_emails') }}"
+                           class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded text-sm ml-2 relative group"
+                           title="Imports up to 10 emails from the inbox of each connected Gmail account.">
+                            Import Emails
+                            <span class="absolute left-1/2 top-full mt-3 -translate-x-1/2 w-64 bg-gray-800 text-white text-xs rounded py-2 px-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
+                                Imports up to 10 emails from the inbox of each connected Gmail account.
+                            </span>
+                        </a>
                         <a href="{{ path('_logout_main') }}" class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm">Logout</a>
                     </div>
                 </div>
