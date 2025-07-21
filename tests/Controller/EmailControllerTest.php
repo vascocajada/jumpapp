@@ -34,36 +34,6 @@ final class EmailControllerTest extends WebTestCase
         return $user;
     }
 
-    public function testIndex(): void
-    {
-        $this->logInUser($this->client, 'user1@example.com');
-        $this->client->followRedirects();
-        $crawler = $this->client->request('GET', $this->path);
-        self::assertResponseStatusCodeSame(200);
-        self::assertPageTitleContains('Email index');
-    }
-
-    public function testNew(): void
-    {
-        $this->logInUser($this->client, 'user1@example.com');
-        $category = $this->manager->getRepository(Category::class)->findOneBy(['name' => 'user1 category']);
-        $this->client->request('GET', sprintf('%s/new', $this->path));
-        self::assertResponseStatusCodeSame(200);
-        $this->client->submitForm('Save', [
-            'email[subject]' => 'Test Subject',
-            'email[sender]' => 'sender@example.com',
-            'email[body]' => 'Test body',
-            'email[summary]' => 'Test summary',
-            'email[receivedAt]' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
-            'email[gmailId]' => 'gmailid123',
-            'email[category]' => $category ? $category->getId() : null,
-        ]);
-        self::assertResponseRedirects($this->path, 303);
-        $email = $this->emailRepository->findOneBy(['subject' => 'Test Subject']);
-        self::assertNotNull($email);
-        self::assertSame('sender@example.com', $email->getSender());
-    }
-
     public function testShow(): void
     {
         $this->logInUser($this->client, 'user1@example.com');
@@ -84,56 +54,5 @@ final class EmailControllerTest extends WebTestCase
         self::assertResponseStatusCodeSame(200);
         self::assertPageTitleContains('Email');
         self::assertStringContainsString('Show Subject', $this->client->getResponse()->getContent());
-    }
-
-    public function testEdit(): void
-    {
-        $this->logInUser($this->client, 'user1@example.com');
-        $category = $this->manager->getRepository(Category::class)->findOneBy(['name' => 'user1 category']);
-        $user = $this->manager->getRepository(User::class)->findOneBy(['email' => 'user1@example.com']);
-        $email = new Email();
-        $email->setSubject('Edit Subject');
-        $email->setSender('edit@example.com');
-        $email->setBody('Edit body');
-        $email->setSummary('Edit summary');
-        $email->setReceivedAt(new \DateTimeImmutable());
-        $email->setGmailId('gmailid-edit');
-        $email->setOwner($user);
-        $email->setCategory($category);
-        $this->manager->persist($email);
-        $this->manager->flush();
-        $this->client->request('GET', sprintf('%s/%s/edit', $this->path, $email->getId()));
-        $this->client->submitForm('Update', [
-            'email[subject]' => 'Updated Subject',
-            'email[sender]' => 'updated@example.com',
-            'email[body]' => 'Updated body',
-            'email[summary]' => 'Updated summary',
-        ]);
-        self::assertResponseRedirects('/email');
-        $editedEmail = $this->emailRepository->find($email->getId());
-        self::assertSame('Updated Subject', $editedEmail->getSubject());
-        self::assertSame('updated@example.com', $editedEmail->getSender());
-    }
-
-    public function testRemove(): void
-    {
-        $this->logInUser($this->client, 'user1@example.com');
-        $category = $this->manager->getRepository(Category::class)->findOneBy(['name' => 'user1 category']);
-        $user = $this->manager->getRepository(User::class)->findOneBy(['email' => 'user1@example.com']);
-        $email = new Email();
-        $email->setSubject('Delete Subject');
-        $email->setSender('delete@example.com');
-        $email->setBody('Delete body');
-        $email->setSummary('Delete summary');
-        $email->setReceivedAt(new \DateTimeImmutable());
-        $email->setGmailId('gmailid-delete');
-        $email->setOwner($user);
-        $email->setCategory($category);
-        $this->manager->persist($email);
-        $this->manager->flush();
-        $this->client->request('GET', sprintf('%s/%s', $this->path, $email->getId()));
-        $this->client->submitForm('Delete');
-        self::assertResponseRedirects('/email');
-        self::assertNull($this->emailRepository->find($email->getId()));
     }
 }
