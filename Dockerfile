@@ -35,6 +35,12 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 # Set permissions for Symfony cache/logs
 RUN chown -R www-data:www-data var
 
+# Install Supervisor
+RUN apt-get update && apt-get install -y supervisor
+
+# Copy supervisor configs
+COPY supervisor /etc/supervisor
+
 # Expose port 8080 for Fly
 EXPOSE 8080
 
