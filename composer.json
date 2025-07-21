@@ -11,6 +11,7 @@
         "doctrine/doctrine-bundle": "^2.15",
         "doctrine/doctrine-migrations-bundle": "^3.4",
         "doctrine/orm": "^3.5",
+        "firebase/php-jwt": "^6.11",
         "friendsofphp/proxy-manager-lts": "^1.0",
         "google/apiclient": "^2.18",
         "knpuniversity/oauth2-client-bundle": "^2.18",

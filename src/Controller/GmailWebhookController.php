@@ -10,6 +10,8 @@ use Symfony\Component\Messenger\MessageBusInterface;
 use App\Message\ImportEmailsMessage;
 use Psr\Log\LoggerInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Firebase\JWT\JWT;
+use Firebase\JWT\JWK;
 
 class GmailWebhookController extends AbstractController
 {
@@ -64,25 +66,11 @@ class GmailWebhookController extends AbstractController
 
     private function isValidGoogleJwt(string $jwt, LoggerInterface $logger): bool
     {
-        // Use firebase/php-jwt or similar for JWT validation
-        // This is a minimal implementation for Google-signed JWTs
         try {
-            $keys = json_decode(file_get_contents('https://www.googleapis.com/oauth2/v1/certs'), true);
-            $parts = explode('.', $jwt);
-            if (count($parts) !== 3) return false;
-            $header = json_decode(base64_decode(strtr($parts[0], '-_', '+/')), true);
-            $kid = $header['kid'] ?? null;
-            if (!$kid || !isset($keys[$kid])) return false;
-            $publicKey = "-----BEGIN CERTIFICATE-----\n" . chunk_split($keys[$kid], 64, "\n") . "-----END CERTIFICATE-----\n";
-            // Use openssl to verify signature
-            $data = $parts[0] . '.' . $parts[1];
-            $signature = base64_decode(strtr($parts[2], '-_', '+/'));
-            $verified = openssl_verify($data, $signature, $publicKey, OPENSSL_ALGO_SHA256);
-            if ($verified !== 1) return false;
-            $payload = json_decode(base64_decode(strtr($parts[1], '-_', '+/')), true);
-            // Check issuer and audience
-            if (($payload['iss'] ?? null) !== 'accounts.google.com' && ($payload['iss'] ?? null) !== 'https://accounts.google.com') return false;
-            // Optionally check aud, exp, etc.
+            $serviceAccountEmail = 'pubsub-push@jumpapp-466313.iam.gserviceaccount.com';
+            $url = "https://www.googleapis.com/service_accounts/v1/jwk/{$serviceAccountEmail}";
+            $keys = json_decode(file_get_contents($url), false); // explicitly decode as object
+            JWT::decode($jwt, JWK::parseKeySet($keys));
             return true;
         } catch (\Throwable $e) {
             $logger->error('JWT validation error', ['error' => $e->getMessage()]);
