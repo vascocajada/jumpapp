@@ -69,7 +69,7 @@ class GmailWebhookController extends AbstractController
         try {
             $serviceAccountEmail = 'pubsub-push@jumpapp-466313.iam.gserviceaccount.com';
             $url = "https://www.googleapis.com/service_accounts/v1/jwk/{$serviceAccountEmail}";
-            $keys = json_decode(file_get_contents($url), false); // explicitly decode as object
+            $keys = json_decode(file_get_contents($url), true); // decode as array
             JWT::decode($jwt, JWK::parseKeySet($keys));
             return true;
         } catch (\Throwable $e) {
