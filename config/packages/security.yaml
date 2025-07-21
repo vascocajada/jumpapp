@@ -15,7 +15,7 @@ security:
             security: false
 
         public:
-            pattern: ^/(connect/google|test-anon)$
+            pattern: ^/(connect/google|test-anon|webhook/gmail)$
             security: false
 
         main:
