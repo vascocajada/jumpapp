@@ -16,6 +16,7 @@ security:
 
         public:
             pattern: ^/connect/google$
+            pattern: ^/test-anon$
             security: false
 
         main:
