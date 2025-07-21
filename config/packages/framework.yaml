@@ -13,3 +13,11 @@ when@test:
         test: true
         session:
             storage_factory_id: session.storage.factory.mock_file
+
+when@prod:
+    framework:
+        # Trust all proxies in production (adjust as needed for your setup)
+        trusted_proxies: '%env(default::TRUSTED_PROXIES)%'
+        trusted_hosts: '%env(default::TRUSTED_HOSTS)%'
+        # Force HTTPS in production
+        http_method_override: false

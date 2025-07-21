@@ -52,6 +52,8 @@ class OAuthController extends AbstractController
     #[Route('/connect/google/check', name: 'connect_google_check')]
     public function connectGoogleCheck()
     {
-        throw $this->createNotFoundException('This page should be handled by the authenticator.');
+        // This method should not be called directly
+        // The authenticator should handle the OAuth callback
+        throw new \Exception('OAuth callback should be handled by the authenticator');
     }
 } 
