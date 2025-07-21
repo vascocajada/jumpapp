@@ -15,6 +15,15 @@ WORKDIR /var/www/html
 # Copy app files
 COPY . .
 
+# Install Node.js and Yarn
+RUN apt-get update && apt-get install -y curl \
+    && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs \
+    && npm install -g yarn
+
+# Install JS dependencies and build assets
+RUN yarn install --frozen-lockfile && yarn build
+
 # Set environment for Composer and Symfony
 ENV APP_ENV=prod
 ENV COMPOSER_ALLOW_SUPERUSER=1

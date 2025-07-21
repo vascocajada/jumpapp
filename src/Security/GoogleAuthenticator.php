@@ -97,6 +97,11 @@ class GoogleAuthenticator extends OAuth2Authenticator
                             $user->setEmail($email);
                             $user->setRoles(['ROLE_USER']);
                             $user->setName($name);
+                            // Create and associate Config
+                            $config = new \App\Entity\Config();
+                            $config->setUser($user);
+                            $user->setConfig($config);
+                            $this->em->persist($config);
                             $this->em->persist($user);
                         }
 
