@@ -17,12 +17,10 @@ class GmailWebhookController extends AbstractController
     public function gmailWebhook(Request $request, MessageBusInterface $bus, LoggerInterface $logger, EntityManagerInterface $em): Response
     {
         $content = $request->getContent();
-        $logger->info('Received Gmail webhook', ['body' => $content]);
+        $logger->info('Received Gmail webhook', ['headers' => $request->headers->all(), 'body' => $content]);
 
         // JWT validation
         $authHeader = $request->headers->get('Authorization');
-        $logger->info('Webhook headers', ['headers' => $request->headers->all()]);
-
         if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
             $logger->warning('Missing or invalid Authorization header');
             return new Response('Unauthorized', 401);
