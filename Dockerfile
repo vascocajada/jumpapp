@@ -43,6 +43,15 @@ RUN apt-get update && apt-get install -y supervisor
 # Copy supervisor configs
 COPY supervisor /etc/supervisor
 
+# Install Chromium and ChromeDriver
+RUN apt-get update && apt-get install -y chromium wget unzip \
+    && wget -O /tmp/chromedriver.zip https://chromedriver.storage.googleapis.com/124.0.6367.91/chromedriver_linux64.zip \
+    && unzip /tmp/chromedriver.zip -d /usr/local/bin/ \
+    && chmod +x /usr/local/bin/chromedriver \
+    && rm /tmp/chromedriver.zip
+
+ENV PANTHER_CHROME_DRIVER_BINARY=/usr/local/bin/chromedriver
+
 # Expose port 8080 for Fly
 EXPOSE 8080
 
