@@ -43,7 +43,7 @@ RUN apt-get update && apt-get install -y supervisor
 # Copy supervisor configs
 COPY supervisor /etc/supervisor
 
-# Install Google Chrome and ChromeDriver with all dependencies, matching versions dynamically
+# Install Google Chrome 127 and matching ChromeDriver
 RUN apt-get update \
     && apt-get install -y wget unzip gnupg ca-certificates fonts-liberation libappindicator3-1 libasound2 libatk-bridge2.0-0 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 \
     libdrm2 libexpat1 libgbm1 libgcc1 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libnss3 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 \
@@ -51,10 +51,8 @@ RUN apt-get update \
     && wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add - \
     && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
     && apt-get update \
-    && apt-get install -y google-chrome-stable \
-    && CHROME_VERSION=$(google-chrome --version | grep -oP '[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+' | head -1) \
-    && CHROMEDRIVER_VERSION=$(wget -qO- "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION%.*}") \
-    && wget -O /tmp/chromedriver.zip "https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_linux64.zip" \
+    && apt-get install -y google-chrome-stable=127.0.6533.61-1 \
+    && wget -O /tmp/chromedriver.zip https://chromedriver.storage.googleapis.com/127.0.6533.61/chromedriver_linux64.zip \
     && unzip /tmp/chromedriver.zip -d /usr/local/bin/ \
     && chmod +x /usr/local/bin/chromedriver \
     && rm /tmp/chromedriver.zip
