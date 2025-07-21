@@ -73,4 +73,17 @@ class GmailService
             throw new \Exception('Failed to archive email in Gmail: ' . $e->getMessage());
         }
     }
+
+    public function watchInbox(\App\Entity\GmailAccount $gmailAccount, string $topicName): \Google\Service\Gmail\WatchResponse
+    {
+        $tokenData = json_decode($gmailAccount->getAccessToken(), true);
+        $client = $this->getClient($tokenData['access_token'], $tokenData['refresh_token'], $newToken);
+        $service = new \Google\Service\Gmail($client);
+
+        $watchRequest = new \Google\Service\Gmail\WatchRequest([
+            'topicName' => $topicName,
+            'labelIds' => ['INBOX'],
+        ]);
+        return $service->users->watch('me', $watchRequest);
+    }
 } 

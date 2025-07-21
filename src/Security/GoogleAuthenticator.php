@@ -20,18 +20,21 @@ use Symfony\Component\Security\Http\Authenticator\AbstractAuthenticator;
 use Symfony\Component\Security\Core\User\UserInterface;
 use KnpU\OAuth2ClientBundle\Exception\InvalidStateException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use App\Service\GmailService;
 
 class GoogleAuthenticator extends OAuth2Authenticator
 {
     private $clientRegistry;
     private $em;
     private $router;
+    private $gmailService;
 
-    public function __construct(ClientRegistry $clientRegistry, EntityManagerInterface $em, RouterInterface $router)
+    public function __construct(ClientRegistry $clientRegistry, EntityManagerInterface $em, RouterInterface $router, GmailService $gmailService)
     {
         $this->clientRegistry = $clientRegistry;
         $this->em = $em;
         $this->router = $router;
+        $this->gmailService = $gmailService;
     }
 
     public function supports(Request $request): bool
@@ -54,7 +57,7 @@ class GoogleAuthenticator extends OAuth2Authenticator
             $isAddingAccount = $request->getSession()->get('adding_gmail_account', false);
 
             return new SelfValidatingPassport(
-                new UserBadge($email, function($userIdentifier) use ($email, $name, $accessToken, $isAddingAccount, $request) {
+                new UserBadge($email, function ($userIdentifier) use ($email, $name, $accessToken, $isAddingAccount, $request) {
                     if ($isAddingAccount) {
                         // We're adding a Gmail account to the current user
                         // Get the current user from the session or token
@@ -71,6 +74,7 @@ class GoogleAuthenticator extends OAuth2Authenticator
                             $existingGmailAccount->setAccessToken(json_encode($accessToken));
                             $existingGmailAccount->setName($name);
                             // If you use soft deletes, restore here (e.g., $existingGmailAccount->setDeletedAt(null))
+                            $this->gmailService->watchInbox($existingGmailAccount, 'projects/jumpapp-466313/topics/gmail-push');
                         } else {
                             // Create new Gmail account connection
                             $gmailAccount = new \App\Entity\GmailAccount();
@@ -79,14 +83,15 @@ class GoogleAuthenticator extends OAuth2Authenticator
                             $gmailAccount->setAccessToken(json_encode($accessToken));
                             $gmailAccount->setOwner($currentUser);
                             $this->em->persist($gmailAccount);
+                            $this->gmailService->watchInbox($gmailAccount, 'projects/jumpapp-466313/topics/gmail-push');
                         }
 
                         $this->em->flush();
-                        
+
                         // Clear the session flags
                         $request->getSession()->remove('adding_gmail_account');
                         $request->getSession()->remove('current_user_email');
-                        
+
                         // Return the current user (don't change authentication)
                         return $currentUser;
                     } else {
@@ -108,7 +113,7 @@ class GoogleAuthenticator extends OAuth2Authenticator
                         // Check if this Gmail account is already connected
                         $existingGmailAccount = $this->em->getRepository(\App\Entity\GmailAccount::class)
                             ->findOneBy(['email' => $email, 'owner' => $user]);
-                        
+
                         if (!$existingGmailAccount) {
                             // Create new Gmail account connection
                             $gmailAccount = new \App\Entity\GmailAccount();
@@ -117,10 +122,12 @@ class GoogleAuthenticator extends OAuth2Authenticator
                             $gmailAccount->setAccessToken(json_encode($accessToken));
                             $gmailAccount->setOwner($user);
                             $this->em->persist($gmailAccount);
+                            $this->gmailService->watchInbox($gmailAccount, 'projects/jumpapp-466313/topics/gmail-push');
                         } else {
                             // Update existing Gmail account token
                             $existingGmailAccount->setAccessToken(json_encode($accessToken));
                             $existingGmailAccount->setName($name);
+                            $this->gmailService->watchInbox($existingGmailAccount, 'projects/jumpapp-466313/topics/gmail-push');
                         }
 
                         $this->em->flush();
@@ -148,11 +155,11 @@ class GoogleAuthenticator extends OAuth2Authenticator
         // Get the current user's email from the session
         $session = $request->getSession();
         $currentUserEmail = $session->get('current_user_email');
-        
+
         if ($currentUserEmail) {
             return $this->em->getRepository(User::class)->findOneBy(['email' => $currentUserEmail]);
         }
-        
+
         return null;
     }
-} 
+}
