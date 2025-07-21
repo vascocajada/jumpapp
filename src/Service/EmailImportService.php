@@ -70,7 +70,6 @@ class EmailImportService
                 }
                 continue;
             }
-
             $payload = $msg->getPayload();
             $headers = $payload->getHeaders();
             $subject = '';
@@ -141,4 +140,4 @@ class EmailImportService
         $this->em->flush();
         return [$processed, $archived, $errors];
     }
-} 
+}

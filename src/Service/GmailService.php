@@ -65,14 +65,11 @@ class GmailService
             $result = $service->users_messages->modify('me', $messageId, $modifyRequest);
             
             // Log success for debugging
-            error_log("Successfully archived message: $messageId");
             return true;
             
         } catch (\Google\Service\Exception $e) {
-            error_log("Gmail API error archiving message $messageId: " . $e->getMessage());
             throw new \Exception('Failed to archive email in Gmail: ' . $e->getMessage() . ' (Code: ' . $e->getCode() . ')');
         } catch (\Exception $e) {
-            error_log("General error archiving message $messageId: " . $e->getMessage());
             throw new \Exception('Failed to archive email in Gmail: ' . $e->getMessage());
         }
     }

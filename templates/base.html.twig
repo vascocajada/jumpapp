@@ -133,6 +133,10 @@
                             </form>
                         {% endif %}
                         <span class="text-gray-300">{{ app.user.email }}</span>
+                        <form method="post" action="{{ path('app_import_emails') }}" class="inline-block mx-2">
+                            <input type="hidden" name="_token" value="{{ csrf_token('import_emails') }}">
+                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm">Import Emails</button>
+                        </form>
                         <a href="{{ path('_logout_main') }}" class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm">Logout</a>
                     </div>
                 </div>

@@ -11,6 +11,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use App\Message\UnsubscribeEmailMessage;
 use Symfony\Component\Messenger\MessageBusInterface;
 use App\Controller\BaseController;
+use App\Message\ImportEmailsMessage;
 
 #[Route('/email')]
 final class EmailController extends BaseController
@@ -77,6 +78,17 @@ final class EmailController extends BaseController
         $bus->dispatch(new UnsubscribeEmailMessage($email->getId()));
         $this->addFlash('info', 'Unsubscribe requested. We’ll notify you when it’s done.');
         return $this->redirectToRoute('app_category_show', ['id' => $categoryId]);
+    }
+
+    #[Route('/import-emails', name: 'app_import_emails', methods: ['POST'])]
+    public function importEmails(MessageBusInterface $bus): Response
+    {
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+        $user = $this->getUser();
+        $userId = method_exists($user, 'getId') ? $user->getId() : $user->getUserIdentifier();
+        $bus->dispatch(new ImportEmailsMessage($userId));
+        $this->addFlash('success', 'Email import started in the background.');
+        return $this->redirectToRoute('app_home');
     }
 
     #[Route('/bulk-delete', name: 'app_email_bulk_delete', methods: ['POST'])]

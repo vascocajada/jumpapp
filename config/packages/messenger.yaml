@@ -23,6 +23,7 @@ framework:
         routing:
             # Route your messages to the transports
             'App\Message\UnsubscribeEmailMessage': async
+            'App\Message\ImportEmailsMessage': async
 
 # when@test:
 #    framework:
