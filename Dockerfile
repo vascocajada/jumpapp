@@ -35,14 +35,8 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 # Set permissions for Symfony cache/logs
 RUN chown -R www-data:www-data var
 
-# Install Supervisor
-RUN apt-get update && apt-get install -y supervisor
-
-# Copy supervisor configs
-COPY supervisor /etc/supervisor
-
 # Expose port 8080 for Fly
 EXPOSE 8080
 
-# Start Supervisor (which will start both web and consumer)
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"] 
+# Start supervisor in the background and PHP built-in server as main process
+CMD ["sh", "-c", "/usr/bin/supervisord -c /etc/supervisor/supervisord.conf & php -S 0.0.0.0:8080 -t public"] 
