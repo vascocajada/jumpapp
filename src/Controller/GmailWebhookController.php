@@ -21,6 +21,8 @@ class GmailWebhookController extends AbstractController
 
         // JWT validation
         $authHeader = $request->headers->get('Authorization');
+        $logger->info('Webhook headers', ['headers' => $request->headers->all()]);
+
         if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
             $logger->warning('Missing or invalid Authorization header');
             return new Response('Unauthorized', 401);
